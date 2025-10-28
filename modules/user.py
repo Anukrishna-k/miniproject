@@ -51,7 +51,9 @@ def login():
     password = getpass.getpass("Password: ")
 
     db = connect_db()
-    cursor = db.cursor(dictionary=True)
+    import psycopg2.extras
+    cursor = db.cursor(cursor_factory=psycopg2.extras.DictCursor)
+
     cursor.execute(f"SELECT * FROM {USERS_TABLE} WHERE username=%s AND password=%s",
                    (username, hash_password(password)))
     user = cursor.fetchone()
@@ -67,7 +69,8 @@ def login():
 
 def view_profile(user_id):
     db = connect_db()
-    cursor = db.cursor(dictionary=True)
+    import psycopg2.extras
+    cursor = db.cursor(cursor_factory=psycopg2.extras.DictCursor)
     cursor.execute(f"SELECT * FROM {USERS_TABLE} WHERE id=%s", (user_id,))
     user = cursor.fetchone()
     db.close()
@@ -112,8 +115,8 @@ def update_profile(user_id):
 
 def view_events(user_id):
     db = connect_db()
-    cursor = db.cursor(dictionary=True)
-
+    import psycopg2.extras
+    cursor = db.cursor(cursor_factory=psycopg2.extras.DictCursor)
     cursor.execute(f"SELECT * FROM {EVENTS_TABLE}")
     events = cursor.fetchall()
     if not events:
@@ -154,7 +157,9 @@ def view_events(user_id):
 
 def cancel_registration(user_id):
     db = connect_db()
-    cursor = db.cursor(dictionary=True)
+    import psycopg2.extras
+    cursor = db.cursor(cursor_factory=psycopg2.extras.DictCursor)
+
 
     cursor.execute(f"""
         SELECT r.id, e.name AS event_name, s.name AS subevent_name
@@ -181,7 +186,9 @@ def cancel_registration(user_id):
 
 def view_results():
     db = connect_db()
-    cursor = db.cursor(dictionary=True)
+    import psycopg2.extras
+    cursor = db.cursor(cursor_factory=psycopg2.extras.DictCursor)
+
 
     cursor.execute(f"SELECT * FROM {EVENTS_TABLE}")
     events = cursor.fetchall()

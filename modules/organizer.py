@@ -39,7 +39,9 @@ def signup():
 
     # optional: check duplicates (username/email)
     db = connect_db()
-    cursor = db.cursor(dictionary=True)
+    import psycopg2.extras
+    cursor = db.cursor(cursor_factory=psycopg2.extras.DictCursor)
+
     cursor.execute(f"SELECT id FROM {ORGANIZERS_TABLE} WHERE username=%s", (username,))
     if cursor.fetchone():
         db.close()
@@ -77,7 +79,9 @@ def login():
     password = getpass.getpass("Enter password: ")
 
     db = connect_db()
-    cursor = db.cursor(dictionary=True)
+    import psycopg2.extras
+    cursor = db.cursor(cursor_factory=psycopg2.extras.DictCursor)
+
     cursor.execute(
     f"SELECT * FROM {ORGANIZERS_TABLE} WHERE username=%s AND password=%s",
     (username, hash_password(password))
@@ -87,7 +91,8 @@ def login():
 
     if result:
         print(f"✅ Welcome, {result['fullname']}!\n")
-        organizer_dashboard(result)  # pass full dict, not result["id"]
+        organizer_dashboard(result)
+ # pass full dict, not result["id"]
 
     else:
         print("❌ Invalid credentials.")
@@ -98,7 +103,9 @@ def login():
 # ---------------------------
 def view_profile(org_id):
     db = connect_db()
-    cursor = db.cursor(dictionary=True)
+    import psycopg2.extras
+    cursor = db.cursor(cursor_factory=psycopg2.extras.DictCursor)
+
     cursor.execute(f"SELECT * FROM {ORGANIZERS_TABLE} WHERE id=%s", (org_id,))
     organizer = cursor.fetchone()
     db.close()
@@ -164,13 +171,16 @@ def create_event(org_id):
 
     venue = input("Venue: ")  # Moved outside the if-else (it should always be asked)
 
-    # ✅ FIX: Removed extra comma after %s in VALUES and use proper placeholders
+    
     cursor.execute(f"""
-        INSERT INTO {EVENTS_TABLE} (organizer_id, name, from_date, to_date, venue)
-        VALUES (%s, %s, %s, %s, %s)
-    """, (org_id, event_name, from_date, to_date, venue))
+    INSERT INTO {EVENTS_TABLE} (organizer_id, name, from_date, to_date, venue)
+    VALUES (%s, %s, %s, %s, %s)
+    RETURNING id
+""", (org_id, event_name, from_date, to_date, venue))
+
+    event_id = cursor.fetchone()[0]  # ✅ Correctly fetches the new event ID
     db.commit()
-    event_id = cursor.lastrowid
+
 
     sub_count = int(input("How many sub-events/programs: "))
     for i in range(sub_count):
@@ -203,7 +213,9 @@ def create_event(org_id):
 
 def check_profile_status(org_id):
     db = connect_db()
-    cursor = db.cursor(dictionary=True)
+    import psycopg2.extras
+    cursor = db.cursor(cursor_factory=psycopg2.extras.DictCursor)
+
 
     # ✅ FIX: Include status column in SELECT
     cursor.execute(f"SELECT fullname, status FROM {ORGANIZERS_TABLE} WHERE id=%s", (org_id,))
@@ -230,7 +242,9 @@ def check_profile_status(org_id):
 # ---------------------------
 def update_event(org_id):
     db = connect_db()
-    cursor = db.cursor(dictionary=True)
+    import psycopg2.extras
+    cursor = db.cursor(cursor_factory=psycopg2.extras.DictCursor)
+
 
     # show events list
     cursor.execute(f"SELECT * FROM {EVENTS_TABLE} WHERE organizer_id=%s", (org_id,))
@@ -325,7 +339,8 @@ def update_event(org_id):
 # ---------------------------
 def delete_event(org_id):
     db = connect_db()
-    cursor = db.cursor(dictionary=True)
+    import psycopg2.extras
+    cursor = db.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
     # fetch all events of this organizer
     cursor.execute(f"SELECT * FROM {EVENTS_TABLE} WHERE organizer_id=%s", (org_id,))
@@ -374,7 +389,8 @@ def delete_event(org_id):
 # ---------------------------
 def view_events(org_id):
     db = connect_db()
-    cursor = db.cursor(dictionary=True)
+    import psycopg2.extras
+    cursor = db.cursor(cursor_factory=psycopg2.extras.DictCursor)
     cursor.execute(f"SELECT * FROM {EVENTS_TABLE} WHERE organizer_id=%s", (org_id,))
     events = cursor.fetchall()
 
@@ -400,7 +416,8 @@ def view_events(org_id):
 # ---------------------------
 def share_results(org_id):
     db = connect_db()
-    cursor = db.cursor(dictionary=True)
+    import psycopg2.extras
+    cursor = db.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
     # 1. Show events
     cursor.execute(f"SELECT * FROM {EVENTS_TABLE} WHERE organizer_id=%s", (org_id,))

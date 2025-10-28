@@ -7,6 +7,7 @@ import getpass
 from modules.db import connect_db, hash_password
 from models import ADMIN_TABLE
 from models import REGISTRATIONS_TABLE, SUBEVENTS_TABLE  
+import psycopg2.extras
 
 
 
@@ -34,7 +35,7 @@ def admin_login():
 
 def view_users():
     db = connect_db()
-    cursor = db.cursor(dictionary=True)
+    cursor = db.cursor(cursor_factory=psycopg2.extras.DictCursor)
     cursor.execute(f"SELECT id, fullname, username, email, phone, dob, address FROM {USERS_TABLE}")
     users = cursor.fetchall()
     db.close()
@@ -49,7 +50,7 @@ def view_users():
 
 def view_organizers():
     db = connect_db()
-    cursor = db.cursor(dictionary=True)
+    cursor = db.cursor(cursor_factory=psycopg2.extras.DictCursor)
     cursor.execute(f"""
     SELECT id, fullname, username, email, phone, dob, address, adhaar, status
     FROM {ORGANIZERS_TABLE}
@@ -67,7 +68,7 @@ def view_organizers():
 
 def view_events():
     db = connect_db()
-    cursor = db.cursor(dictionary=True)
+    cursor = db.cursor(cursor_factory=psycopg2.extras.DictCursor)
     cursor.execute(f"SELECT id, name, from_date, to_date, venue,  organizer_id FROM {EVENTS_TABLE}")
     events = cursor.fetchall()
     db.close()
@@ -82,7 +83,7 @@ def view_events():
 
 def delete_event():
     db = connect_db()
-    cursor = db.cursor(dictionary=True)
+    cursor = db.cursor(cursor_factory=psycopg2.extras.DictCursor)
     
     # ❌ Fixed: removed extra comma after 'venue'
     cursor.execute(f"SELECT id, name, venue FROM {EVENTS_TABLE}")
@@ -121,7 +122,9 @@ def delete_event():
 
 def approve_organizers():
     db = connect_db()
-    cursor = db.cursor(dictionary=True)
+    import psycopg2.extras
+    cursor = db.cursor(cursor_factory=psycopg2.extras.DictCursor)
+
 
     # Fetch only pending organizers
     cursor.execute(f"SELECT id, fullname, username, email, phone, status FROM {ORGANIZERS_TABLE} WHERE status='pending'")
@@ -153,7 +156,7 @@ def approve_organizers():
 
 def view_attendees():
     db = connect_db()
-    cursor = db.cursor(dictionary=True)
+    cursor = db.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
     # 1. Show Events
     cursor.execute(f"SELECT id, name FROM {EVENTS_TABLE}")
